@@ -1,0 +1,19 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: item-service
+  datasource:
+    url: jdbc:mysql://172.16.27.130/zzx #linux中docker下的mysql
+    username: root
+    password: 123
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:10086/eureka
+  instance:
+    lease-renewal-interval-in-seconds: 5 #设置实例的心跳时间为5秒，即每隔5秒监听一次心跳
+    lease-expiration-duration-in-seconds: 15 #设置过期时间为15秒，即15秒内没有监听到心跳则会将该服务从eureka注册中心中剔除
+mybatis:
+  type-aliases-package: com.leyou.item.pojo #配置mybatis别名的包扫描路径
+

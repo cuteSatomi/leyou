@@ -1,0 +1,14 @@
+server:
+  port: 10086 #eureka服务端端口
+spring:
+  application:
+    name: leyou-registry
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:10086/eureka #eureka注册中心的地址，即服务端也将自己注册到eureka注册中心中
+    register-with-eureka: false #如果不需要将服务端自己也注册给自己，就可以加上这个配置，这样注册中心列表中全是可用的微服务了
+    fetch-registry: false #同时此处也不需要eureka再来拉取该服务了，将其置为false
+  server:
+    enable-self-preservation: false #关闭自我保护
+    eviction-interval-timer-in-ms: 10000 #每隔10秒清理一次无效链接，即挂掉的微服务
