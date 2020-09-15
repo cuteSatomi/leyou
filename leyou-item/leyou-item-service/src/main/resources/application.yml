@@ -4,7 +4,7 @@ spring:
   application:
     name: item-service
   datasource:
-    url: jdbc:mysql://172.16.27.130/zzx #linux中docker下的mysql
+    url: jdbc:mysql://192.168.1.62/zzx #linux中docker下的mysql
     username: root
     password: 123
 eureka:
