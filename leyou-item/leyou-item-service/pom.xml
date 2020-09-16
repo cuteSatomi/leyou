@@ -73,6 +73,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+
+        <!--引入leyou-common依赖-->
+        <dependency>
+            <groupId>com.leyou.common</groupId>
+            <artifactId>leyou-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>
