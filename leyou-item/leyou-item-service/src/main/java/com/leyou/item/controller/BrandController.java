@@ -4,12 +4,13 @@ import com.leyou.common.pojo.PageResult;
 import com.leyou.item.pojo.Brand;
 import com.leyou.item.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("brand")
@@ -42,5 +43,19 @@ public class BrandController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 新增品牌
+     *
+     * @param brand
+     * @param cids
+     * @return 没有返回数据，只有返回状态码，成功返回201，失败返回500
+     */
+    @PostMapping
+    public ResponseEntity<Void> saveBrand(Brand brand, @RequestParam("cids") List<Long> cids) {
+        this.brandService.saveBrand(brand, cids);
+        // 成功返回201，如果异常则会直接返回500
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }
