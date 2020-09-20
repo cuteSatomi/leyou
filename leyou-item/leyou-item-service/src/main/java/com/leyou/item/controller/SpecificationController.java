@@ -37,6 +37,49 @@ public class SpecificationController {
     }
 
     /**
+     * 添加分组
+     * @param specGroup
+     * @return
+     */
+    @PostMapping("group")
+    public ResponseEntity<Void> addGroup(@RequestBody SpecGroup specGroup){
+        int affect = this.specificationService.addGroup(specGroup);
+        //影响行数等于0，即新增失败
+        if(affect == 0){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 修改分组信息
+     * @param specGroup
+     * @return
+     */
+    @PutMapping("group")
+    public ResponseEntity<Void> updateGroup(@RequestBody SpecGroup specGroup){
+        int affect = this.specificationService.updateGroup(specGroup);
+        if(affect == 0){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 根据id删除分组
+     * @param id
+     * @return
+     */
+    @DeleteMapping("group/{id}")
+    public ResponseEntity<Void> deleteGroupById(@PathVariable("id")Long id){
+        int affect = this.specificationService.deleteGroupById(id);
+        if(affect == 0){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * 根据gid查询规格参数
      * @param gid
      * @return
@@ -51,13 +94,41 @@ public class SpecificationController {
     }
 
     /**
-     * 添加分组
-     * @param specGroup
+     * 新增规格参数
+     * @param specParam
      * @return
      */
-    @PostMapping("group")
-    public ResponseEntity<Void> addGroup(@RequestBody SpecGroup specGroup){
-        int affect = this.specificationService.addGroup(specGroup);
+    @PostMapping("param")
+    public ResponseEntity<Void> addParam(@RequestBody SpecParam specParam){
+        int affect = this.specificationService.addParam(specParam);
+        if(affect == 0){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 修改规格参数
+     * @param specParam
+     * @return
+     */
+    @PutMapping("param")
+    public ResponseEntity<Void> updateParam(@RequestBody SpecParam specParam){
+        int affect = this.specificationService.updateParam(specParam);
+        if(affect == 0){
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 删除规格参数
+     * @param id
+     * @return
+     */
+    @DeleteMapping("param/{id}")
+    public ResponseEntity<Void> deleteParamById(@PathVariable("id")Long id){
+        int affect = this.specificationService.deleteParamById(id);
         if(affect == 0){
             return ResponseEntity.badRequest().build();
         }
