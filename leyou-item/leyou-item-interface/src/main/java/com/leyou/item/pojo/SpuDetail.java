@@ -13,7 +13,7 @@ public class SpuDetail {
      * 对应的SPU的id
      */
     @Id
-    private Long souId;
+    private Long spuId;
     /**
      * 商品描述
      */
@@ -35,12 +35,12 @@ public class SpuDetail {
      */
     private String afterService;
 
-    public Long getSouId() {
-        return souId;
+    public Long getSpuId() {
+        return spuId;
     }
 
-    public void setSouId(Long souId) {
-        this.souId = souId;
+    public void setSpuId(Long spuId) {
+        this.spuId = spuId;
     }
 
     public String getDescription() {
