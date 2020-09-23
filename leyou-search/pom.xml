@@ -15,9 +15,10 @@
 
     <dependencies>
         <!--引入eureka客户端-->
+        <!--这里依赖引错了，一直报错，引成spring-cloud-netflix-eureka-client了-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-netflix-eureka-client</artifactId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
         <!--web启动器依赖-->

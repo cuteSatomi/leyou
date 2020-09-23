@@ -6,11 +6,11 @@ spring:
   data:
     elasticsearch:
       cluster-name: elasticsearch
-      cluster-nodes: 192.168.1.62:9300
+      cluster-nodes: 172.16.27.130:9300
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:10086/eureka
+      defaultZone: http://127.0.0.1:10086/eureka
     registry-fetch-interval-seconds: 10      # 每10秒拉取一次微服务
   instance:
     lease-renewal-interval-in-seconds: 5     # 心跳时间

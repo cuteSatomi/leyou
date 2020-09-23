@@ -9,6 +9,6 @@ import java.util.List;
 @RequestMapping("category") //配置全局路径为category
 public interface CategoryApi {
 
-    @GetMapping
+    @GetMapping()
     public List<String> queryNamesByIds(@RequestParam("ids") List<Long> ids);
 }
