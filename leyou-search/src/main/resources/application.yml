@@ -6,7 +6,9 @@ spring:
   data:
     elasticsearch:
       cluster-name: elasticsearch
-      cluster-nodes: 172.16.27.130:9300
+      cluster-nodes: 192.168.1.62:9300
+  jackson:
+    default-property-inclusion: non_null # 过滤掉查询结果中null字段
 eureka:
   client:
     service-url:
