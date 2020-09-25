@@ -1,5 +1,6 @@
 package com.leyou.search.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leyou.common.pojo.PageResult;
@@ -12,20 +13,20 @@ import com.leyou.search.pojo.Goods;
 import com.leyou.search.pojo.SearchRequest;
 import com.leyou.search.pojo.SearchResult;
 import com.leyou.search.repository.GoodsRepository;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.LongTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -52,7 +53,6 @@ public class SearchService {
     // 将对象序列化为json字符串的类
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-
     public SearchResult search(SearchRequest request) {
 
         // 校验参数
@@ -62,7 +62,9 @@ public class SearchService {
         // 自定义查询构建器
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
         // 添加查询条件，各个词之间应该是AND关系
-        queryBuilder.withQuery(QueryBuilders.matchQuery("all", request.getKey()).operator(Operator.AND));
+        //QueryBuilder basicQuery = QueryBuilders.matchQuery("all", request.getKey()).operator(Operator.AND);
+        BoolQueryBuilder basicQuery = buildBoolQueryBuilder(request);
+        queryBuilder.withQuery(basicQuery);
         // 添加分页，page和size参数从自己封装的request对象中取，这里有一个注意事项：分页页码从0开始，因此这里的page要减1
         queryBuilder.withPageable(PageRequest.of(request.getPage() - 1, request.getSize()));
         // 添加结果集过滤，只需查出id、skus和subTitle
@@ -96,8 +98,92 @@ public class SearchService {
         List<Map<String, Object>> categories = getCategoryAggResult(goodsPage.getAggregation(categoryAggName));
         List<Brand> brands = getBrandAggResult(goodsPage.getAggregation(brandAggName));
 
+        List<Map<String, Object>> specs = null;
+        // 查询规格参数的聚合结果集
+        // 判断是否是一个分类，只有一个分类时才做聚合
+        if (!CollectionUtils.isEmpty(categories) && categories.size() == 1) {
+            // 对规格参数进行聚合
+            specs = getParamAggResult((Long) categories.get(0).get("id"), basicQuery);
+        }
+
         // 返回自己封装的分页结果集
-        return new SearchResult(goodsPage.getTotalElements(), goodsPage.getTotalPages(), goodsPage.getContent(), categories, brands);
+        return new SearchResult(goodsPage.getTotalElements(), goodsPage.getTotalPages(), goodsPage.getContent(), categories, brands, specs);
+    }
+
+    /**
+     * 构建布尔查询
+     *
+     * @param request
+     * @return
+     */
+    private BoolQueryBuilder buildBoolQueryBuilder(SearchRequest request) {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        // 给布尔查询添加基本查询条件
+        boolQueryBuilder.must(QueryBuilders.matchQuery("all", request.getKey()).operator(Operator.AND));
+        // 添加过滤条件
+        // 获取用户选择的过滤信息
+        Map<String, Object> filter = request.getFilter();
+        for (Map.Entry<String, Object> entry : filter.entrySet()) {
+            String key = entry.getKey();
+            if (StringUtils.equals("品牌", key)) {
+                key = "brandId";
+            } else if (StringUtils.equals("分类", key)) {
+                key = "cid3";
+            } else {
+                key = "specs." + key + ".keyword";
+            }
+            boolQueryBuilder.filter(QueryBuilders.termQuery(key, entry.getValue()));
+        }
+        return boolQueryBuilder;
+    }
+
+    /**
+     * 根据查询条件集合规格参数
+     *
+     * @param cid
+     * @param basicQuery
+     * @return
+     */
+    private List<Map<String, Object>> getParamAggResult(Long cid, QueryBuilder basicQuery) {
+        // 自定义查询对象构建
+        NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
+        // 添加基本查询田间
+        queryBuilder.withQuery(basicQuery);
+
+        // 查询要聚合的规格参数
+        List<SpecParam> params = this.specificationClient.queryParamsByGidOrCid(null, cid, null, true);
+
+        // 添加规格参数的聚合
+        params.forEach(param -> {
+            // 聚合字段其实是 specs.CPU核数.keyword    中间的字段就是需要聚合的关键字，keyword代表不分词
+            queryBuilder.addAggregation(AggregationBuilders.terms(param.getName()).field("specs." + param.getName() + ".keyword"));
+        });
+
+        // 添加结果集过滤
+        queryBuilder.withSourceFilter(new FetchSourceFilter(new String[]{}, null));
+
+        // 执行聚合查询
+        AggregatedPage<Goods> goodsPage = (AggregatedPage<Goods>) this.goodsRepository.search(queryBuilder.build());
+
+        List<Map<String, Object>> specs = new ArrayList<>();
+        // 解析聚合结果集， map的key--聚合名称(即规格参数名)  value--聚合对象
+        Map<String, Aggregation> aggregationMap = goodsPage.getAggregations().asMap();
+        for (Map.Entry<String, Aggregation> entry : aggregationMap.entrySet()) {
+            // 初始化一个map {k : options} k->规格参数名  options->聚合的规格参数值
+            Map<String, Object> map = new HashMap<>();
+            map.put("k", entry.getKey());
+            // 初始化一个options集合，收集桶中的key
+            List<String> options = new ArrayList<>();
+            // 获取聚合value
+            StringTerms terms = (StringTerms) entry.getValue();
+            // 获取桶集合
+            terms.getBuckets().forEach(bucket -> {
+                options.add(bucket.getKeyAsString());
+            });
+            map.put("options", options);
+            specs.add(map);
+        }
+        return specs;
     }
 
     /**
@@ -225,7 +311,7 @@ public class SearchService {
         // 获取spu下的所有sku，并转换成json字符串保存
         goods.setSkus(MAPPER.writeValueAsString(skuMapList));
         // 获取查询的所有规格参数 {name: value}
-        goods.setSpecs(null);
+        goods.setSpecs(specs);
 
         return goods;
     }
