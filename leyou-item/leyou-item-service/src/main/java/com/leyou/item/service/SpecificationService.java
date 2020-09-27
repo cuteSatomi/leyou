@@ -121,4 +121,13 @@ public class SpecificationService {
         //删除该分组
         this.specGroupMapper.deleteByPrimaryKey(id);
     }
+
+    public List<SpecGroup> queryGroupsWithParam(Long cid) {
+        List<SpecGroup> groups = this.queryGroupByCid(cid);
+        groups.forEach(group -> {
+            List<SpecParam> params = this.queryParamsByGid(group.getId(), null, null, null);
+            group.setParams(params);
+        });
+        return groups;
+    }
 }

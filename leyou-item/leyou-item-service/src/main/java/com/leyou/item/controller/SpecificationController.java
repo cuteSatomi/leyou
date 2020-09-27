@@ -131,4 +131,12 @@ public class SpecificationController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @GetMapping("group/param/{cid}")
+    public ResponseEntity<List<SpecGroup>> queryGroupsWithParam(@PathVariable("cid") Long cid) {
+        List<SpecGroup> groups = this.specificationService.queryGroupsWithParam(cid);
+        if (CollectionUtils.isEmpty(groups)) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(groups);
+    }
 }
