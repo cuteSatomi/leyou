@@ -3,11 +3,21 @@ server:
 spring:
   application:
     name: user-service
+  # mysql配置
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/leyou
+    url: jdbc:mysql://192.168.1.62:3306/leyou
     username: root
-    password: root
+    password: 123
     driver-class-name: com.mysql.jdbc.Driver
+  # redis配置
+  redis:
+    host: 192.168.1.62
+  # rabbitmq配置
+  rabbitmq:
+    host: 192.168.1.62
+    virtual-host: /leyou
+    username: leyou
+    password: 123
 eureka:
   client:
     service-url:

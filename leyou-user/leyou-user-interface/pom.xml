@@ -25,6 +25,13 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.9.6</version>
         </dependency>
+
+        <!--表单字段校验的依赖-->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.0.8.Final</version>
+        </dependency>
     </dependencies>
 
 </project>
