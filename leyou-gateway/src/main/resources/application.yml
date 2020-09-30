@@ -14,3 +14,21 @@ zuul:
     item-service: /item/** #路由到商品的微服务
     search-service: /search/** #路由到搜索的微服务
     user-service: /user/** #用户微服务
+    auth-service: /auth/** #鉴权微服务
+  add-host-header: true # 网关转发时添加地址头信心，配合nginx中Host配置(注意：proxy_set_header Host $host; 应该配置到网关的server中)让token的cookie可用
+  sensitive-headers: # 覆盖默认敏感头信息
+
+# 关于jwt的配置，网关分发到不同的微服务之前需要解析token，失败就直接拦截。因此需要配置公钥和cookieName
+leyou:
+  jwt:
+    pubKeyPath: C:\\tmp\\rsa\\rsa.pub # 公钥地址
+    cookieName: LY_TOKEN
+  # 过滤器白名单的配置
+  filter:
+    allowPaths:
+      - /api/auth
+      - /api/search
+      - /api/user/register
+      - /api/user/check
+      - /api/user/code
+      - /api/item
